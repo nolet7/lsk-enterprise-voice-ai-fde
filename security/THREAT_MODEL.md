@@ -1,0 +1,3 @@
+# Threat model (initial)
+
+Assets: customer profile, order metadata, call and transcript content, session tokens, provider credentials. Trust boundaries: browser ↔ API, LiveKit media transport ↔ worker, worker ↔ backend, operator ↔ privileged queue. POC is **local-only** and intentionally insecure for public hosting: no OIDC, unverified browser-to-session binding, no distributed rate limiter, no production audit store. Do not deploy the POC publicly. Security invariant: private order endpoints deny unverified sessions and cross-customer order IDs. Transcript capture is disabled unless both customer opt-in and server flag are set; remote providers may process audio under their own retention contracts. Never accept spoken PINs into transcripts.
