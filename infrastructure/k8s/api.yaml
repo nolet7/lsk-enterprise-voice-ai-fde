@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lsk-api
+  namespace: lsk-voice
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
+  selector:
+    matchLabels: {app: lsk-api}
+  template:
+    metadata:
+      labels: {app: lsk-api}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 65532, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: api
+          image: ghcr.io/REPLACE_OWNER/lsk-enterprise-voice-ai-fde-api:REPLACE_IMMUTABLE_TAG
+          ports: [{containerPort: 18743}]
+          envFrom: [{secretRef: {name: lsk-runtime-secrets}}]
+          readinessProbe:
+            httpGet: {path: /healthz, port: 18743}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: 18743}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: "1", memory: 512Mi}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: ["ALL"]}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lsk-api
+  namespace: lsk-voice
+spec:
+  selector: {app: lsk-api}
+  ports: [{port: 80, targetPort: 18743}]
